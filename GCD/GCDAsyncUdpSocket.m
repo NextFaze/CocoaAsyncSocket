@@ -2712,7 +2712,7 @@ SetParamPtrsAndReturn:
 		// Bind the socket(s)
 		
 		LogVerbose(@"Binding socket to port(%hu) interface(%@)", port, interface);
-		
+        
 		if (useIPv4)
 		{
 			int status = bind(socket4FD, (struct sockaddr *)[interface4 bytes], (socklen_t)[interface4 length]);
@@ -2834,7 +2834,7 @@ SetParamPtrsAndReturn:
 		}
 		
 		// Bind the socket(s)
-		
+        
 		if (useIPv4)
 		{
 			LogVerbose(@"Binding socket to address(%@:%hu)",
@@ -3305,6 +3305,14 @@ SetParamPtrsAndReturn:
 				return_from_block;
 			}
 			
+            // Disable loopback so you do not receive your own datagrams.
+             char loopch = 0;
+             if(setsockopt(socket4FD, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&loopch, sizeof(loopch)) < 0)
+             {
+                 err = [[self errnoErrorWithReason:@"Error in setsockopt() function"] retain];
+                 return_from_block;
+             }
+            
 			// Using IPv4 only
 			[self closeSocket6];
 			
@@ -3326,6 +3334,14 @@ SetParamPtrsAndReturn:
 				
 				return_from_block;
 			}
+            
+            // Disable loopback so you do not receive your own datagrams.
+            char loopch = 0;
+            if(setsockopt(socket6FD, IPPROTO_IP, IPV6_MULTICAST_LOOP, (char *)&loopch, sizeof(loopch)) < 0)
+            {
+                err = [[self errnoErrorWithReason:@"Error in setsockopt() function"] retain];
+                return_from_block;
+            }
 			
 			// Using IPv6 only
 			[self closeSocket4];
